@@ -1,7 +1,8 @@
 package ru.practicum.shareit.user;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.annotation.Validated;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -10,14 +11,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.shareit.user.dto.UserUpdateDto;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import javax.validation.Valid;
 import java.util.List;
 
 @RestController
 @RequestMapping(path = "/users")
-@Validated
 public class UserController {
 
     private final UserService userService;
@@ -28,27 +28,27 @@ public class UserController {
     }
 
     @GetMapping
-    public List<User> findAll() {
-        return userService.findAll();
+    public ResponseEntity<List<UserDto>> findAll() {
+        return new ResponseEntity<>(userService.findAll(), HttpStatus.OK);
     }
 
     @PostMapping
-    public User create(@Valid @RequestBody User user) {
-        return userService.create(user);
+    public ResponseEntity<UserDto> create(@Valid @RequestBody UserDto userDto) {
+        return new ResponseEntity<>(userService.create(userDto), HttpStatus.CREATED);
     }
 
     @PatchMapping(value = "/{id}")
-    public User update(@PathVariable int id, @RequestBody UserUpdateDto userUpdateDto) {
-        return userService.update(id, userUpdateDto);
+    public ResponseEntity<UserDto> update(@PathVariable int id, @RequestBody UserDto userDto) {
+        return new ResponseEntity<>(userService.update(id, userDto), HttpStatus.OK);
     }
 
     @GetMapping(value = "/{id}")
-    public User getUserById(@PathVariable int id) {
-        return userService.getUserById(id);
+    public ResponseEntity<UserDto> getUserById(@PathVariable int id) {
+        return new ResponseEntity<>(userService.getUserById(id), HttpStatus.OK);
     }
 
     @DeleteMapping(value = "/{id}")
-    public User deleteUserById(@PathVariable int id) {
-        return userService.deleteUserById(id);
+    public ResponseEntity<UserDto> deleteUserById(@PathVariable int id) {
+        return new ResponseEntity<>(userService.deleteUserById(id), HttpStatus.OK);
     }
 }
