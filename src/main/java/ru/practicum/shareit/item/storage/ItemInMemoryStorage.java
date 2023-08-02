@@ -11,7 +11,7 @@ import java.util.Map;
 @Component
 public class ItemInMemoryStorage implements ItemStorage {
 
-    private final Map<Integer, List<Item>> userItemsMap = new HashMap<>();
+    private final Map<Integer, Map<Integer, Item>> userItemsMap = new HashMap<>();
     private final Map<Integer, Item> items = new HashMap<>();
     private int itemIdCounter = 1;
 
@@ -20,8 +20,8 @@ public class ItemInMemoryStorage implements ItemStorage {
         item.setId(itemIdCounter++);
         items.put(item.getId(), item);
 
-        List<Item> userItems = userItemsMap.getOrDefault(item.getOwner().getId(), new ArrayList<>());
-        userItems.add(item);
+        Map<Integer, Item> userItems = userItemsMap.getOrDefault(item.getOwner().getId(), new HashMap<>());
+        userItems.put(item.getId(), item);
         userItemsMap.put(item.getOwner().getId(), userItems);
 
         return item;
@@ -29,11 +29,8 @@ public class ItemInMemoryStorage implements ItemStorage {
 
     @Override
     public Item updateItem(Item item) {
-        Item tempItem = items.get(item.getId());
-
-        List<Item> userItems = userItemsMap.getOrDefault(item.getOwner().getId(), new ArrayList<>());
-        userItems.remove(tempItem);
-        userItems.add(item);
+        Map<Integer, Item> userItems = userItemsMap.getOrDefault(item.getOwner().getId(), new HashMap<>());
+        userItems.put(item.getId(), item);
         userItemsMap.put(item.getOwner().getId(), userItems);
 
         items.put(item.getId(), item);
@@ -48,7 +45,7 @@ public class ItemInMemoryStorage implements ItemStorage {
 
     @Override
     public List<Item> getItemsByOwnerId(int userId) {
-        return userItemsMap.getOrDefault(userId, new ArrayList<>());
+        return new ArrayList<>(userItemsMap.getOrDefault(userId, new HashMap<>()).values());
     }
 
     @Override

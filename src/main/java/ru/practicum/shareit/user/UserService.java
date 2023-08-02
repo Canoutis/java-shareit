@@ -26,7 +26,7 @@ public class UserService {
     }
 
     public UserDto create(UserDto userDto) {
-        if (checkEmailAvailabilityInMemory(userDto.getId(), userDto.getEmail())) {
+        if (checkEmail(userDto.getId(), userDto.getEmail())) {
             return UserMapper.toUserDto(userStorage.create(UserMapper.toUserEntity(userDto)));
         } else {
             throw new ObjectAlreadyExistsException(
@@ -39,7 +39,7 @@ public class UserService {
         if (userDto.getName() != null && !userDto.getName().isBlank())
             user.setName(userDto.getName());
         if (userDto.getEmail() != null && !userDto.getEmail().isBlank()) {
-            if (checkEmailAvailabilityInMemory(user.getId(), userDto.getEmail()))
+            if (checkEmail(user.getId(), userDto.getEmail()))
                 user.setEmail(userDto.getEmail());
             else throw new ObjectAlreadyExistsException(
                     String.format("Ошибка обновления пользователя. Пользователь с таким email уже существует! Email=%s",
@@ -61,7 +61,7 @@ public class UserService {
         return UserMapper.toUserDto(userStorage.deleteUserById(id));
     }
 
-    public boolean checkEmailAvailabilityInMemory(int userId, String email) {
+    private boolean checkEmail(int userId, String email) {
         return findAll().stream().noneMatch(userI -> userI.getEmail().equals(email) && userI.getId() != userId);
     }
 

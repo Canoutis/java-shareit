@@ -7,8 +7,7 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.ItemStorage;
 import ru.practicum.shareit.user.User;
-import ru.practicum.shareit.user.UserMapper;
-import ru.practicum.shareit.user.UserService;
+import ru.practicum.shareit.user.storage.UserStorage;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,21 +16,21 @@ import java.util.stream.Collectors;
 public class ItemService {
 
     private final ItemStorage itemStorage;
-    private final UserService userService;
+    private final UserStorage userStorage;
 
-    public ItemService(ItemStorage itemStorage, UserService userService) {
+    public ItemService(ItemStorage itemStorage, UserStorage userStorage) {
         this.itemStorage = itemStorage;
-        this.userService = userService;
+        this.userStorage = userStorage;
     }
 
     public ItemDto addItem(int userId, ItemDto itemDto) {
-        User owner = UserMapper.toUserEntity(userService.getUserById(userId));
+        User owner = userStorage.getUserById(userId);
         itemDto.setOwnerId(userId);
         return ItemMapper.toItemDto(itemStorage.addItem(ItemMapper.toItemEntity(itemDto, owner)));
     }
 
     public ItemDto updateItem(int userId, int itemId, ItemDto itemDto) {
-        User user = UserMapper.toUserEntity(userService.getUserById(userId));
+        User user = userStorage.getUserById(userId);
         ItemDto tempItemDto = getItemById(itemId);
         if (tempItemDto.getOwnerId() != userId) {
             throw new ObjectAccessException(
