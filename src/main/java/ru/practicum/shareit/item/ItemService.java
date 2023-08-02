@@ -25,6 +25,9 @@ public class ItemService {
 
     public ItemDto addItem(int userId, ItemDto itemDto) {
         User owner = userStorage.getUserById(userId);
+        if (owner == null) {
+            throw new ObjectNotFoundException(String.format("Пользователь не найден! Id=%d", userId));
+        }
         itemDto.setOwnerId(userId);
         return ItemMapper.toItemDto(itemStorage.addItem(ItemMapper.toItemEntity(itemDto, owner)));
     }
