@@ -1,22 +1,20 @@
-package ru.practicum.shareit.item.dto;
+package ru.practicum.shareit.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.validation.annotation.Validated;
 
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 
 @Data
 @Validated
 @AllArgsConstructor
-public class ItemDto {
+public class UserDto {
     private int id;
+    @Email
+    @NotBlank
+    private String email;
     @NotBlank
     private String name;
-    @NotBlank
-    private String description;
-    @NotNull
-    private Boolean available;
-    private int ownerId;
 }
