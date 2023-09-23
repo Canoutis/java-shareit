@@ -113,8 +113,7 @@ public class ItemServiceImpl implements ItemService {
             } else {
                 ownerItemDto = new OwnerItemDto(ItemMapper.toItemDto(item.get()));
             }
-            ownerItemDto.getComments().
-                    addAll(commentRepository.findByItem_IdIsOrderByCreatedDesc(itemId)
+            ownerItemDto.getComments().addAll(commentRepository.findByItem_IdIsOrderByCreatedDesc(itemId)
                             .stream().map(CommentMapper::toCommentDto)
                             .collect(Collectors.toList()));
             return ownerItemDto;
