@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.shareit.booking.dto.BookItemRequestDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
 
 import javax.validation.Valid;
@@ -28,9 +29,9 @@ public class BookingController {
     }
 
     @PostMapping
-    public ResponseEntity<BookingDto> create(@Valid @RequestBody BookingDto bookingDto,
+    public ResponseEntity<BookingDto> create(@Valid @RequestBody BookItemRequestDto bookItemRequestDto,
                                              @RequestHeader("X-Sharer-User-Id") int userId) {
-        return new ResponseEntity<>(bookingService.create(bookingDto, userId), HttpStatus.CREATED);
+        return new ResponseEntity<>(bookingService.create(bookItemRequestDto, userId), HttpStatus.CREATED);
     }
 
     @PatchMapping("/{bookingId}")
@@ -46,13 +47,13 @@ public class BookingController {
 
     @GetMapping
     public ResponseEntity<Object> findBookingsBySearchState(@RequestHeader("X-Sharer-User-Id") int userId,
-                                                            @RequestParam(value = "state", required = false, defaultValue = "ALL") String state) {
+                                                            @RequestParam(value = "state", required = false, defaultValue = "ALL") State state) {
         return new ResponseEntity<>(bookingService.findBookingsBySearchState(userId, state), HttpStatus.OK);
     }
 
     @GetMapping("/owner")
     public ResponseEntity<Object> findBookingsByItemsOwner(@RequestHeader("X-Sharer-User-Id") int userId,
-                                                           @RequestParam(value = "state", required = false, defaultValue = "ALL") String state) {
+                                                           @RequestParam(value = "state", required = false, defaultValue = "ALL") State state) {
         return new ResponseEntity<>(bookingService.findBookingsByItemsOwner(userId, state), HttpStatus.OK);
     }
 

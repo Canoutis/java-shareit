@@ -4,6 +4,7 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.OwnerItemDto;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface ItemService {
@@ -11,7 +12,7 @@ public interface ItemService {
 
     ItemDto update(Integer userId, Long itemId, ItemDto itemDto);
 
-    List<OwnerItemDto> getItemsByOwnerId(int userId);
+    Collection<OwnerItemDto> getItemsByOwnerId(int userId);
 
     List<ItemDto> searchItems(String text);
 

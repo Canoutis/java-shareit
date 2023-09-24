@@ -16,6 +16,7 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.OwnerItemDto;
 
 import javax.validation.Valid;
+import java.util.Collection;
 import java.util.List;
 
 @RestController
@@ -43,7 +44,7 @@ public class ItemController {
     }
 
     @GetMapping
-    public ResponseEntity<List<OwnerItemDto>> getItemsByOwnerId(@RequestHeader("X-Sharer-User-Id") int userId) {
+    public ResponseEntity<Collection<OwnerItemDto>> getItemsByOwnerId(@RequestHeader("X-Sharer-User-Id") int userId) {
         return new ResponseEntity<>(itemService.getItemsByOwnerId(userId), HttpStatus.OK);
     }
 
