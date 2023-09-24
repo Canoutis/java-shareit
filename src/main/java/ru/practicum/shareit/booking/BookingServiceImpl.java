@@ -31,7 +31,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
-    public final Sort BOOKING_START_DATE_SORT_DESC = Sort.by(Sort.Direction.DESC, "startDate");
+    private final static Sort bookingStartDateSortDesc = Sort.by(Sort.Direction.DESC, "startDate");
 
     @Autowired
     public BookingServiceImpl(BookingRepository bookingRepository,
@@ -94,17 +94,17 @@ public class BookingServiceImpl implements BookingService {
         if (user.isEmpty()) throw new ObjectNotFoundException(String.format("Пользователь не найден! Id=%x", userId));
         List<Booking> bookings;
         if (state == null || state == State.ALL) {
-            bookings = bookingRepository.findByBookerId(userId, BOOKING_START_DATE_SORT_DESC);
+            bookings = bookingRepository.findByBookerId(userId, bookingStartDateSortDesc);
         } else if (state == State.CURRENT) {
-            bookings = bookingRepository.findCurrentBookingsByBookerId(userId, BOOKING_START_DATE_SORT_DESC);
+            bookings = bookingRepository.findCurrentBookingsByBookerId(userId, bookingStartDateSortDesc);
         } else if (state == State.PAST) {
-            bookings = bookingRepository.findPastBookingsByBookerId(userId, BOOKING_START_DATE_SORT_DESC);
+            bookings = bookingRepository.findPastBookingsByBookerId(userId, bookingStartDateSortDesc);
         } else if (state == State.FUTURE) {
-            bookings = bookingRepository.findFutureBookingsByBookerId(userId, BOOKING_START_DATE_SORT_DESC);
+            bookings = bookingRepository.findFutureBookingsByBookerId(userId, bookingStartDateSortDesc);
         } else if (state == State.WAITING) {
-            bookings = bookingRepository.findBookingsByBookerIdAndBookingStatus(userId, WAITING, BOOKING_START_DATE_SORT_DESC);
+            bookings = bookingRepository.findBookingsByBookerIdAndBookingStatus(userId, WAITING, bookingStartDateSortDesc);
         } else if (state == State.REJECTED) {
-            bookings = bookingRepository.findBookingsByBookerIdAndBookingStatus(userId, REJECTED, BOOKING_START_DATE_SORT_DESC);
+            bookings = bookingRepository.findBookingsByBookerIdAndBookingStatus(userId, REJECTED, bookingStartDateSortDesc);
         } else {
             throw new BadRequestException(String.format("Unknown state: %s", state));
         }
@@ -117,17 +117,17 @@ public class BookingServiceImpl implements BookingService {
         if (user.isEmpty()) throw new ObjectNotFoundException(String.format("Пользователь не найден! Id=%x", userId));
         List<Booking> bookings;
         if (state == null || state == State.ALL) {
-            bookings = bookingRepository.findByOwnerId(userId, BOOKING_START_DATE_SORT_DESC);
+            bookings = bookingRepository.findByOwnerId(userId, bookingStartDateSortDesc);
         } else if (state == State.CURRENT) {
-            bookings = bookingRepository.findCurrentBookingsByOwnerId(userId, BOOKING_START_DATE_SORT_DESC);
+            bookings = bookingRepository.findCurrentBookingsByOwnerId(userId, bookingStartDateSortDesc);
         } else if (state == State.PAST) {
-            bookings = bookingRepository.findPastBookingsByOwnerId(userId, BOOKING_START_DATE_SORT_DESC);
+            bookings = bookingRepository.findPastBookingsByOwnerId(userId, bookingStartDateSortDesc);
         } else if (state == State.FUTURE) {
-            bookings = bookingRepository.findFutureBookingsByOwnerId(userId, BOOKING_START_DATE_SORT_DESC);
+            bookings = bookingRepository.findFutureBookingsByOwnerId(userId, bookingStartDateSortDesc);
         } else if (state == State.WAITING) {
-            bookings = bookingRepository.findBookingsByOwnerIdAndBookingStatus(userId, WAITING, BOOKING_START_DATE_SORT_DESC);
+            bookings = bookingRepository.findBookingsByOwnerIdAndBookingStatus(userId, WAITING, bookingStartDateSortDesc);
         } else if (state == State.REJECTED) {
-            bookings = bookingRepository.findBookingsByOwnerIdAndBookingStatus(userId, REJECTED, BOOKING_START_DATE_SORT_DESC);
+            bookings = bookingRepository.findBookingsByOwnerIdAndBookingStatus(userId, REJECTED, bookingStartDateSortDesc);
         } else {
             throw new BadRequestException(String.format("Unknown state: %s", state));
         }
