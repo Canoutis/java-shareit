@@ -31,7 +31,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
-    private final static Sort bookingStartDateSortDesc = Sort.by(Sort.Direction.DESC, "startDate");
+    private static final Sort bookingStartDateSortDesc = Sort.by(Sort.Direction.DESC, "startDate");
 
     @Autowired
     public BookingServiceImpl(BookingRepository bookingRepository,
