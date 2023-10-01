@@ -1,7 +1,8 @@
-package ru.practicum.shareit.user.dto;
+package ru.practicum.shareit.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.Email;
@@ -10,8 +11,9 @@ import javax.validation.constraints.NotBlank;
 @Data
 @Validated
 @AllArgsConstructor
+@NoArgsConstructor
 public class UserDto {
-    private int id;
+    private Integer id;
     @Email
     @NotBlank
     private String email;

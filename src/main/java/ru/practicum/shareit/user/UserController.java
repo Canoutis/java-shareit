@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.shareit.user.dto.UserDto;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -49,6 +48,7 @@ public class UserController {
 
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<UserDto> deleteUserById(@PathVariable int id) {
-        return new ResponseEntity<>(userService.deleteUserById(id), HttpStatus.OK);
+        userService.deleteUserById(id);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
