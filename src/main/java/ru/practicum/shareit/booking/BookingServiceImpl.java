@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,22 +90,26 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingDto> findBookingsBySearchState(int userId, State state) {
+    public List<BookingDto> findBookingsBySearchState(int userId, State state, Integer from, Integer size) {
         Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) throw new ObjectNotFoundException(String.format("Пользователь не найден! Id=%x", userId));
+        if (from < 0 || size <= 0) {
+            throw new BadRequestException(String.format("Неправильные значения параметров! from=%x size=%x", from, size));
+        }
+        PageRequest pageable = PageRequest.of(from > 0 ? from / size : 0, size, bookingStartDateSortDesc);
         List<Booking> bookings;
         if (state == null || state == State.ALL) {
-            bookings = bookingRepository.findByBookerId(userId, bookingStartDateSortDesc);
+            bookings = bookingRepository.findByBookerId(userId, pageable);
         } else if (state == State.CURRENT) {
-            bookings = bookingRepository.findCurrentBookingsByBookerId(userId, bookingStartDateSortDesc);
+            bookings = bookingRepository.findCurrentBookingsByBookerId(userId, pageable);
         } else if (state == State.PAST) {
-            bookings = bookingRepository.findPastBookingsByBookerId(userId, bookingStartDateSortDesc);
+            bookings = bookingRepository.findPastBookingsByBookerId(userId, pageable);
         } else if (state == State.FUTURE) {
-            bookings = bookingRepository.findFutureBookingsByBookerId(userId, bookingStartDateSortDesc);
+            bookings = bookingRepository.findFutureBookingsByBookerId(userId, pageable);
         } else if (state == State.WAITING) {
-            bookings = bookingRepository.findBookingsByBookerIdAndBookingStatus(userId, WAITING, bookingStartDateSortDesc);
+            bookings = bookingRepository.findBookingsByBookerIdAndBookingStatus(userId, WAITING, pageable);
         } else if (state == State.REJECTED) {
-            bookings = bookingRepository.findBookingsByBookerIdAndBookingStatus(userId, REJECTED, bookingStartDateSortDesc);
+            bookings = bookingRepository.findBookingsByBookerIdAndBookingStatus(userId, REJECTED, pageable);
         } else {
             throw new BadRequestException(String.format("Unknown state: %s", state));
         }
@@ -112,22 +117,26 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingDto> findBookingsByItemsOwner(int userId, State state) {
+    public List<BookingDto> findBookingsByItemsOwner(int userId, State state, Integer from, Integer size) {
         Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) throw new ObjectNotFoundException(String.format("Пользователь не найден! Id=%x", userId));
+        if (from < 0 || size <= 0) {
+            throw new BadRequestException(String.format("Неправильные значения параметров! from=%x size=%x", from, size));
+        }
+        PageRequest pageable = PageRequest.of(from > 0 ? from / size : 0, size, bookingStartDateSortDesc);
         List<Booking> bookings;
         if (state == null || state == State.ALL) {
-            bookings = bookingRepository.findByOwnerId(userId, bookingStartDateSortDesc);
+            bookings = bookingRepository.findByOwnerId(userId, pageable);
         } else if (state == State.CURRENT) {
-            bookings = bookingRepository.findCurrentBookingsByOwnerId(userId, bookingStartDateSortDesc);
+            bookings = bookingRepository.findCurrentBookingsByOwnerId(userId, pageable);
         } else if (state == State.PAST) {
-            bookings = bookingRepository.findPastBookingsByOwnerId(userId, bookingStartDateSortDesc);
+            bookings = bookingRepository.findPastBookingsByOwnerId(userId, pageable);
         } else if (state == State.FUTURE) {
-            bookings = bookingRepository.findFutureBookingsByOwnerId(userId, bookingStartDateSortDesc);
+            bookings = bookingRepository.findFutureBookingsByOwnerId(userId, pageable);
         } else if (state == State.WAITING) {
-            bookings = bookingRepository.findBookingsByOwnerIdAndBookingStatus(userId, WAITING, bookingStartDateSortDesc);
+            bookings = bookingRepository.findBookingsByOwnerIdAndBookingStatus(userId, WAITING, pageable);
         } else if (state == State.REJECTED) {
-            bookings = bookingRepository.findBookingsByOwnerIdAndBookingStatus(userId, REJECTED, bookingStartDateSortDesc);
+            bookings = bookingRepository.findBookingsByOwnerIdAndBookingStatus(userId, REJECTED, pageable);
         } else {
             throw new BadRequestException(String.format("Unknown state: %s", state));
         }

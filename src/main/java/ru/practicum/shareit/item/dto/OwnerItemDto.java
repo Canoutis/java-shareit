@@ -19,7 +19,12 @@ public class OwnerItemDto extends ItemDto {
     private final List<CommentDto> comments = new ArrayList<>();
 
     public OwnerItemDto(ItemDto itemDto) {
-        super(itemDto.getId(), itemDto.getName(), itemDto.getDescription(), itemDto.getAvailable(), itemDto.getOwnerId());
+        super(itemDto.getId(),
+                itemDto.getName(),
+                itemDto.getDescription(),
+                itemDto.getAvailable(),
+                itemDto.getOwnerId(),
+                itemDto.getRequestId());
     }
 
 }

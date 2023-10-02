@@ -64,6 +64,6 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public ErrorResponse handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
-        return new ErrorResponse("Unknown state: " + ex.getValue());
+        return new ErrorResponse("Unknown " + ex.getName() + ": " + ex.getValue());
     }
 }

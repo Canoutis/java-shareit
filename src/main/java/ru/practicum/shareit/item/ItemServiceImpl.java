@@ -1,12 +1,15 @@
 package ru.practicum.shareit.item;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingMapper;
 import ru.practicum.shareit.booking.storage.BookingRepository;
+import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.ObjectAccessException;
 import ru.practicum.shareit.exception.ObjectNotFoundException;
 import ru.practicum.shareit.exception.ObjectSaveException;
@@ -15,6 +18,8 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.OwnerItemDto;
 import ru.practicum.shareit.item.storage.CommentRepository;
 import ru.practicum.shareit.item.storage.ItemRepository;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.storage.ItemRequestRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.storage.UserRepository;
 
@@ -34,14 +39,17 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     @Autowired
     public ItemServiceImpl(ItemRepository itemRepository, UserRepository userRepository,
-                           BookingRepository bookingRepository, CommentRepository commentRepository) {
+                           BookingRepository bookingRepository, CommentRepository commentRepository,
+                           ItemRequestRepository itemRequestRepository) {
         this.itemRepository = itemRepository;
         this.userRepository = userRepository;
         this.bookingRepository = bookingRepository;
         this.commentRepository = commentRepository;
+        this.itemRequestRepository = itemRequestRepository;
     }
 
     @Override
@@ -52,16 +60,14 @@ public class ItemServiceImpl implements ItemService {
             throw new ObjectNotFoundException(String.format("Пользователь не найден! Id=%d", userId));
         }
         itemDto.setOwnerId(userId);
-        return ItemMapper.toItemDto(itemRepository.save(ItemMapper.toItemEntity(itemDto, owner.get())));
+        return ItemMapper.toItemDto(itemRepository.save(ItemMapper.toItemEntity(itemDto, owner.get(),
+                getItemRequestById(itemDto.getRequestId()))));
     }
 
     @Override
     @Transactional
     public ItemDto update(Integer userId, Long itemId, ItemDto itemDto) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) {
-            throw new ObjectNotFoundException(String.format("Пользователь не найден! Id=%d", userId));
-        }
+        User user = findUserById(userId);
         ItemDto tempItemDto = getItemById(itemId, userId);
         if (tempItemDto.getOwnerId() != userId) {
             throw new ObjectAccessException(
@@ -76,13 +82,19 @@ public class ItemServiceImpl implements ItemService {
 
         if (itemDto.getDescription() != null && !itemDto.getDescription().isBlank())
             tempItemDto.setDescription(itemDto.getDescription());
-        Item item = ItemMapper.toItemEntity(tempItemDto, user.get());
+        Item item = ItemMapper.toItemEntity(tempItemDto, user, getItemRequestById(itemDto.getRequestId()));
         return ItemMapper.toItemDto(itemRepository.save(item));
     }
 
     @Override
-    public Collection<OwnerItemDto> getItemsByOwnerId(int userId) {
-        List<Item> items = itemRepository.findItemsByUserId(userId, Sort.by(Sort.Direction.DESC, "id"));
+    public Collection<OwnerItemDto> getItemsByOwnerId(int userId, Integer from, Integer size) {
+        findUserById(userId);
+        Sort sort = Sort.by(Sort.Direction.DESC, "id");
+        if (from < 0 || size <= 0) {
+            throw new BadRequestException(String.format("Неправильные значения параметров! from=%x size=%x", from, size));
+        }
+        PageRequest pageable = PageRequest.of(from > 0 ? from / size : 0, size, sort);
+        List<Item> items = itemRepository.findByOwnerIdIs(userId, pageable);
         Map<Long, OwnerItemDto> itemMap = items.stream()
                 .collect(Collectors.toMap(Item::getId, ItemMapper::toOwnerItemDto));
 
@@ -114,9 +126,14 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public List<ItemDto> searchItems(String text) {
+    public List<ItemDto> searchItems(String text, Integer from, Integer size) {
         if (text == null || text.isEmpty()) return new ArrayList<>();
-        List<Item> items = itemRepository.findItemsByText(text);
+        Sort sort = Sort.by("id");
+        if (from < 0 || size <= 0) {
+            throw new BadRequestException(String.format("Неправильные значения параметров! from=%x size=%x", from, size));
+        }
+        PageRequest pageable = PageRequest.of(from > 0 ? from / size : 0, size, sort);
+        List<Item> items = itemRepository.findItemsByText(text, pageable);
         return items.stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
     }
 
@@ -145,16 +162,38 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public CommentDto saveComment(CommentDto commentDto, int userId, long itemId) {
-        Optional<User> author = userRepository.findById(userId);
-        if (author.isEmpty()) throw new ObjectNotFoundException(String.format("Пользователь не найден! Id=%x", userId));
+        User author = findUserById(userId);
         Optional<Item> item = itemRepository.findById(itemId);
         if (item.isEmpty()) throw new ObjectNotFoundException(String.format("Вещь не найдена! Id=%x", itemId));
         List<Booking> bookings = bookingRepository.findExpiredByBookerIdAndItemId(userId, itemId);
         if (bookings != null && bookings.size() > 0) {
-            Comment comment = CommentMapper.toCommentEntity(commentDto, author.get(), item.get());
+            Comment comment = CommentMapper.toCommentEntity(commentDto, author, item.get());
             return CommentMapper.toCommentDto(commentRepository.save(comment));
         } else {
             throw new ObjectSaveException("Вы не можете оставить отзыв этому товару!");
         }
+    }
+
+    @Nullable
+    private ItemRequest getItemRequestById(Long id) {
+        ItemRequest itemRequest = null;
+        if (id != null) {
+            Optional<ItemRequest> tempItemRequest = itemRequestRepository.findById(id);
+            if (tempItemRequest.isEmpty())
+                throw new ObjectNotFoundException(String.format("Запрос не найден! Id=%d", id));
+            else
+                itemRequest = tempItemRequest.get();
+        }
+        return itemRequest;
+    }
+
+    //Вопрос по таким методам. Не хочется как то одно и то же дублировать.
+    //А в итоге все равно в разных сервисах дублирую разные методы. Подскажите как лучше
+    private User findUserById(Integer id) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isEmpty()) {
+            throw new ObjectNotFoundException(String.format("Пользователь не найден! Id=%d", id));
+        }
+        return user.get();
     }
 }
