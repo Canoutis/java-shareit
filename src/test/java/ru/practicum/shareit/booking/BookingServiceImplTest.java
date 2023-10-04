@@ -12,6 +12,7 @@ import ru.practicum.shareit.booking.dto.BookItemRequestDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.storage.BookingRepository;
 import ru.practicum.shareit.exception.BadRequestException;
+import ru.practicum.shareit.exception.ObjectNotFoundException;
 import ru.practicum.shareit.exception.ObjectSaveException;
 import ru.practicum.shareit.exception.ObjectUpdateException;
 import ru.practicum.shareit.item.Item;
@@ -202,6 +203,68 @@ public class BookingServiceImplTest {
     }
 
     @Test
+    void testFindByIdOk() {
+        User user = new User(1, "test@etcdev.ru", "Test Test");
+        User user2 = new User(2, "test2@etcdev.ru", "Test2 Test2");
+        Item item = new Item(1L, "Перфоратор", "Электрический", true, user, null);
+        Booking booking = new Booking(1L, WAITING,
+                LocalDateTime.now().plusDays(5), LocalDateTime.now().plusDays(10), item, user2);
+
+        Mockito.when(userRepository.findById(1))
+                .thenReturn(Optional.of(user));
+        Mockito.when(bookingRepository.findById(1L))
+                .thenReturn(Optional.of(booking));
+
+        BookingDto bookingDto = bookingService.findById(1L, 1);
+        Assertions.assertEquals(WAITING, bookingDto.getStatus());
+
+        Mockito.verify(userRepository, Mockito.times(1))
+                .findById(1);
+        Mockito.verify(bookingRepository, Mockito.times(1))
+                .findById(1L);
+        Mockito.verifyNoInteractions(itemRepository);
+
+    }
+
+    @Test
+    void testFindByIdBookingObjectNotFoundException() {
+        User user = new User(1, "test@etcdev.ru", "Test Test");
+
+        Mockito.when(userRepository.findById(1))
+                .thenReturn(Optional.of(user));
+        Mockito.when(bookingRepository.findById(1L))
+                .thenReturn(Optional.empty());
+
+        final ObjectNotFoundException exception = Assertions.assertThrows(
+                ObjectNotFoundException.class,
+                () -> bookingService.findById(1L, 1));
+        Assertions.assertEquals("Бронирование не найдено! Id=1", exception.getMessage());
+
+        Mockito.verify(userRepository, Mockito.times(1))
+                .findById(1);
+        Mockito.verify(bookingRepository, Mockito.times(1))
+                .findById(1L);
+        Mockito.verifyNoInteractions(itemRepository);
+
+    }
+
+    @Test
+    void testFindByIdThrowsUserObjectNotFoundException() {
+        Mockito.when(userRepository.findById(1))
+                .thenReturn(Optional.empty());
+
+        final ObjectNotFoundException exception = Assertions.assertThrows(
+                ObjectNotFoundException.class,
+                () -> bookingService.findById(1L, 1));
+        Assertions.assertEquals("Пользователь не найден! Id=1", exception.getMessage());
+
+        Mockito.verify(userRepository, Mockito.times(1))
+                .findById(1);
+        Mockito.verifyNoInteractions(itemRepository, bookingRepository);
+
+    }
+
+    @Test
     void testRejectBookingOk() {
         User user = new User(1, "test@etcdev.ru", "Test Test");
         User user2 = new User(2, "test2@etcdev.ru", "Test2 Test2");
@@ -241,7 +304,6 @@ public class BookingServiceImplTest {
                 .thenReturn(Optional.of(user));
         Mockito.when(bookingRepository.findById(1L))
                 .thenReturn(Optional.of(booking));
-
 
         final BadRequestException exception = Assertions.assertThrows(
                 BadRequestException.class,

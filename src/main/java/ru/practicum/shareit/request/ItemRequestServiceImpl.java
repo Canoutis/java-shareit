@@ -58,7 +58,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     public Collection<ItemRequestDto> findOtherItemRequests(int userId, Integer from, Integer size) {
         findUser(userId);
         if (from < 0 || size <= 0) {
-            throw new BadRequestException(String.format("Неправильные значения параметров! from=%x size=%x", from, size));
+            throw new BadRequestException(String.format("Неправильные значения параметров! from=%d size=%x", from, size));
         }
         PageRequest pageable = PageRequest.of(from > 0 ? from / size : 0, size, Sort.by(Sort.Direction.DESC, "created"));
         List<ItemRequest> itemRequests = itemRequestRepository.findDistinctByOwnerIdNot(userId, pageable);

@@ -11,7 +11,10 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import ru.practicum.shareit.exception.ObjectAccessException;
+import ru.practicum.shareit.handler.ErrorHandler;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.user.UserDto;
@@ -50,6 +53,7 @@ public class ItemControllerTest {
     void setUp() {
         mvc = MockMvcBuilders
                 .standaloneSetup(itemController)
+                .setControllerAdvice(ErrorHandler.class)
                 .build();
 
         userDto = new UserDto(
@@ -67,7 +71,7 @@ public class ItemControllerTest {
     }
 
     @Test
-    void testSaveNewUser() throws Exception {
+    void testSaveNewItem() throws Exception {
         Mockito.when(itemService.create(anyInt(), any(ItemDto.class)))
                 .thenReturn(itemDto);
 
@@ -86,7 +90,7 @@ public class ItemControllerTest {
     }
 
     @Test
-    void testUpdateUser() throws Exception {
+    void testUpdateItem() throws Exception {
         ItemDto updatedItemDto = new ItemDto(
                 1L,
                 "Перфоратор мощный",
@@ -193,5 +197,27 @@ public class ItemControllerTest {
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.text", is(commentDto.getText())))
                 .andExpect(jsonPath("$.authorName", is("Second Test2")));
+    }
+
+
+    @Test
+    void testApproveBookingBadRequestException() throws Exception {
+        ItemDto updatedItemDto = new ItemDto(
+                1L,
+                "Перфоратор мощный",
+                "Электрический, беспроводной",
+                true,
+                1, null);
+        Mockito.when(itemService.update(anyInt(), anyLong(), any(ItemDto.class)))
+                .thenThrow(ObjectAccessException.class);
+
+        mvc.perform(patch("/items/{id}", itemDto.getId())
+                        .content(mapper.writeValueAsString(updatedItemDto))
+                        .header("X-Sharer-User-Id", 1)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().is(403));
     }
 }

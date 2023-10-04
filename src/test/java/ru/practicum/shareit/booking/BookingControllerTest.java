@@ -11,9 +11,15 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import ru.practicum.shareit.booking.dto.BookItemRequestDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.exception.BadRequestException;
+import ru.practicum.shareit.exception.ObjectNotFoundException;
+import ru.practicum.shareit.exception.ObjectSaveException;
+import ru.practicum.shareit.exception.ObjectUpdateException;
+import ru.practicum.shareit.handler.ErrorHandler;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.user.UserDto;
 
@@ -32,6 +38,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.practicum.shareit.booking.Booking.BookingStatus.APPROVED;
+import static ru.practicum.shareit.booking.Booking.BookingStatus.REJECTED;
 import static ru.practicum.shareit.booking.Booking.BookingStatus.WAITING;
 
 @ExtendWith(MockitoExtension.class)
@@ -52,6 +59,7 @@ public class BookingControllerTest {
     void setUp() {
         mvc = MockMvcBuilders
                 .standaloneSetup(bookingController)
+                .setControllerAdvice(ErrorHandler.class)
                 .build();
 
         UserDto bookerDto = new UserDto(
@@ -242,4 +250,66 @@ public class BookingControllerTest {
                 .andExpect(jsonPath("$[0].status", is(WAITING.toString())));
     }
 
+
+    @Test
+    void testCreateBookingObjectSaveException() throws Exception {
+        Mockito.when(bookingService.create(any(BookItemRequestDto.class), anyInt()))
+                .thenThrow(ObjectSaveException.class);
+
+        mvc.perform(post("/bookings")
+                        .content(mapper.writeValueAsString(bookItemRequestDto))
+                        .header("X-Sharer-User-Id", 2)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().is(400));
+    }
+
+
+    @Test
+    void testCreateBookingObjectUpdateException() throws Exception {
+        Mockito.when(bookingService.create(any(BookItemRequestDto.class), anyInt()))
+                .thenThrow(ObjectUpdateException.class);
+
+        mvc.perform(post("/bookings")
+                        .content(mapper.writeValueAsString(bookItemRequestDto))
+                        .header("X-Sharer-User-Id", 2)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().is(404));
+    }
+
+    @Test
+    void testCreateBookingObjectNotFoundException() throws Exception {
+        Mockito.when(bookingService.create(any(BookItemRequestDto.class), anyInt()))
+                .thenThrow(ObjectNotFoundException.class);
+
+        mvc.perform(post("/bookings")
+                        .content(mapper.writeValueAsString(bookItemRequestDto))
+                        .header("X-Sharer-User-Id", 2)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().is(404));
+    }
+
+    @Test
+    void testApproveBookingBadRequestException() throws Exception {
+        bookingDto.setStatus(REJECTED);
+        Mockito.when(bookingService.approve(1L, 1, true))
+                .thenThrow(BadRequestException.class);
+
+        mvc.perform(patch("/bookings/{bookingId}", 1L)
+                        .header("X-Sharer-User-Id", 1)
+                        .param("approved", "true")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().is(400));
+    }
 }

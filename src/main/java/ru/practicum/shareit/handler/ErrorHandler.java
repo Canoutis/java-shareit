@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.ObjectAccessException;
-import ru.practicum.shareit.exception.ObjectAlreadyExistsException;
 import ru.practicum.shareit.exception.ObjectNotFoundException;
 import ru.practicum.shareit.exception.ObjectSaveException;
 import ru.practicum.shareit.exception.ObjectUpdateException;
@@ -35,13 +34,6 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleObjectUpdateException(final ObjectUpdateException e) {
-        log.info(e.getMessage(), e);
-        return new ErrorResponse(e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ErrorResponse handleObjectAlreadyExistsException(final ObjectAlreadyExistsException e) {
         log.info(e.getMessage(), e);
         return new ErrorResponse(e.getMessage());
     }

@@ -19,6 +19,8 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.OwnerItemDto;
 import ru.practicum.shareit.item.storage.CommentRepository;
 import ru.practicum.shareit.item.storage.ItemRepository;
+import ru.practicum.shareit.request.ItemRequestMapper;
+import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.storage.ItemRequestRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.storage.UserRepository;
@@ -34,6 +36,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static ru.practicum.shareit.booking.Booking.BookingStatus.APPROVED;
 
 @ExtendWith(MockitoExtension.class)
 public class ItemServiceImplTest {
@@ -90,6 +94,37 @@ public class ItemServiceImplTest {
                 .save(any(Item.class));
 
         Mockito.verifyNoMoreInteractions(userRepository, itemRepository);
+    }
+
+    @Test
+    void testCreateItemThrowsItemRequestObjectNotFoundException() {
+        User user = new User(1, "test@etcdev.ru", "Test Test");
+        User user2 = new User(2, "test2@etcdev.ru", "Test2 Test2");
+
+        ItemRequestDto itemRequestDto = ItemRequestDto.builder()
+                .id(1L)
+                .description("Нужен мощный лобзик!")
+                .created(LocalDateTime.now())
+                .build();
+        Item item = new Item(1L, "Лобзик", "мощный", true, user,
+                ItemRequestMapper.toItemRequestEntity(itemRequestDto, user2));
+        Mockito.when(userRepository.findById(1))
+                .thenReturn(Optional.of(user));
+        Mockito.when(itemRequestRepository.findById(1L))
+                .thenReturn(Optional.empty());
+
+        final ObjectNotFoundException exception = Assertions.assertThrows(
+                ObjectNotFoundException.class,
+                () -> itemService.create(1, ItemMapper.toItemDto(item)));
+
+        Assertions.assertEquals("Запрос не найден! Id=1", exception.getMessage());
+
+        Mockito.verify(userRepository, Mockito.times(1))
+                .findById(1);
+        Mockito.verify(itemRequestRepository, Mockito.times(1))
+                .findById(1L);
+
+        Mockito.verifyNoMoreInteractions(userRepository, itemRequestRepository);
     }
 
     @Test
@@ -154,16 +189,47 @@ public class ItemServiceImplTest {
     }
 
     @Test
+    void testUpdateItemThrowsObjectNotFoundException() {
+        User user = new User(1, "test@etcdev.ru", "Test Test");
+        Item item = new Item(1L, "Перфоратор", "Электрический", true, user, null);
+
+        Mockito.when(userRepository.findById(2))
+                .thenReturn(Optional.empty());
+
+        final ObjectNotFoundException exception = Assertions.assertThrows(
+                ObjectNotFoundException.class,
+                () -> itemService.update(2, 1L, ItemMapper.toItemDto(item)));
+
+        Assertions.assertEquals("Пользователь не найден! Id=2", exception.getMessage());
+
+        Mockito.verify(userRepository, Mockito.times(1))
+                .findById(2);
+        Mockito.verifyNoMoreInteractions(userRepository);
+    }
+
+    @Test
     void testGetItemsByOwnerIdOk() {
         User user = new User(1, "test@etcdev.ru", "Test Test");
+        User user2 = new User(2, "test2@etcdev.ru", "Test2 Test2");
         Item item1 = new Item(1L, "Перфоратор", "Электрический", true, user, null);
         Item item2 = new Item(2L, "Перфоратор2", "Электрический2", true, user, null);
+
+        Booking booking1 = new Booking(1L, APPROVED,
+                LocalDateTime.now().plusDays(5), LocalDateTime.now().plusDays(12), item1, user2);
+        Booking booking2 = new Booking(1L, APPROVED,
+                LocalDateTime.now().minusDays(5), LocalDateTime.now().minusDays(2), item1, user2);
+
+        Booking booking3 = new Booking(1L, APPROVED,
+                LocalDateTime.now().plusDays(2), LocalDateTime.now().plusDays(3), item1, user2);
+        Booking booking4 = new Booking(1L, APPROVED,
+                LocalDateTime.now().minusDays(2), LocalDateTime.now().minusDays(1), item1, user2);
+
         Mockito.when(userRepository.findById(1))
                 .thenReturn(Optional.of(user));
         Mockito.when(itemRepository.findByOwnerIdIs(anyInt(), any(PageRequest.class)))
                 .thenReturn(Arrays.asList(item1, item2));
         Mockito.when(bookingRepository.findApprovedBookings(anyCollection(), any(Sort.class)))
-                .thenReturn(new ArrayList<>());
+                .thenReturn(Arrays.asList(booking1, booking2, booking3, booking4));
         Mockito.when(commentRepository.findCommentsByItems(anyCollection(), any(Sort.class)))
                 .thenReturn(new ArrayList<>());
 
@@ -181,7 +247,6 @@ public class ItemServiceImplTest {
                 .findCommentsByItems(anyCollection(), any(Sort.class));
 
         Mockito.verifyNoInteractions(itemRequestRepository);
-
     }
 
     @Test
@@ -336,6 +401,20 @@ public class ItemServiceImplTest {
                 .findExpiredByBookerIdAndItemId(2, 1);
 
         Mockito.verifyNoInteractions(itemRequestRepository, commentRepository);
+    }
+
+    @Test
+    void testSearchItemsOk() {
+        User user = new User(1, "test@etcdev.ru", "Test Test");
+        Item item = new Item(1L, "Перфоратор", "Электрический", true, user, null);
+        Mockito.when(itemRepository.findItemsByText(anyString(), any(PageRequest.class)))
+                .thenReturn(Collections.singletonList(item));
+        itemService.searchItems("Перфоратор", 0, 2);
+
+        Mockito.verify(itemRepository, Mockito.times(1))
+                .findItemsByText(anyString(), any(PageRequest.class));
+
+        Mockito.verifyNoInteractions(itemRequestRepository, commentRepository, userRepository, bookingRepository);
     }
 
 }

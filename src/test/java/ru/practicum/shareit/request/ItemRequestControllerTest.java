@@ -67,6 +67,22 @@ public class ItemRequestControllerTest {
     }
 
     @Test
+    void testFindUserItemRequests() throws Exception {
+        Mockito.when(itemRequestService.findUserItemRequests(2))
+                .thenReturn(Collections.singletonList(itemRequestDto));
+
+        mvc.perform(get("/requests")
+                        .header("X-Sharer-User-Id", 2)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id", is(1)))
+                .andExpect(jsonPath("$[0].description", is(itemRequestDto.getDescription())));
+    }
+
+    @Test
     void testFindOtherItemRequests() throws Exception {
         Mockito.when(itemRequestService.findOtherItemRequests(2, 0, 2))
                 .thenReturn(Collections.singletonList(itemRequestDto));
