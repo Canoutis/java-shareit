@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking.storage;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -12,36 +13,36 @@ import java.util.List;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @Query("select b from Booking b where b.booker.id = ?1")
-    List<Booking> findByBookerId(Integer id, Sort sort);
+    List<Booking> findByBookerId(Integer id, Pageable page);
 
     @Query("select b from Booking b " +
             "where b.booker.id = ?1 and b.startDate < CURRENT_TIMESTAMP and b.endDate > CURRENT_TIMESTAMP")
-    List<Booking> findCurrentBookingsByBookerId(Integer id, Sort sort);
+    List<Booking> findCurrentBookingsByBookerId(Integer id, Pageable page);
 
     @Query("select b from Booking b where b.booker.id = ?1 and b.endDate < CURRENT_TIMESTAMP")
-    List<Booking> findPastBookingsByBookerId(Integer id, Sort sort);
+    List<Booking> findPastBookingsByBookerId(Integer id, Pageable page);
 
     @Query("select b from Booking b where b.booker.id = ?1 and b.startDate > CURRENT_TIMESTAMP")
-    List<Booking> findFutureBookingsByBookerId(Integer userId, Sort sort);
+    List<Booking> findFutureBookingsByBookerId(Integer userId, Pageable page);
 
     @Query("select b from Booking b where b.booker.id = ?1 and b.status = ?2")
-    List<Booking> findBookingsByBookerIdAndBookingStatus(Integer id, Booking.BookingStatus status, Sort sort);
+    List<Booking> findBookingsByBookerIdAndBookingStatus(Integer id, Booking.BookingStatus status, Pageable page);
 
     @Query("select b from Booking b where b.item.owner.id = ?1")
-    List<Booking> findByOwnerId(Integer id, Sort sort);
+    List<Booking> findByOwnerId(Integer id, Pageable page);
 
     @Query("select b from Booking b " +
             "where b.item.owner.id = ?1 and b.startDate < CURRENT_TIMESTAMP and b.endDate > CURRENT_TIMESTAMP")
-    List<Booking> findCurrentBookingsByOwnerId(Integer id, Sort sort);
+    List<Booking> findCurrentBookingsByOwnerId(Integer id, Pageable page);
 
     @Query("select b from Booking b where b.item.owner.id = ?1 and b.endDate < CURRENT_TIMESTAMP")
-    List<Booking> findPastBookingsByOwnerId(Integer id, Sort sort);
+    List<Booking> findPastBookingsByOwnerId(Integer id, Pageable page);
 
     @Query("select b from Booking b where b.item.owner.id = ?1 and b.startDate > CURRENT_TIMESTAMP")
-    List<Booking> findFutureBookingsByOwnerId(Integer userId, Sort sort);
+    List<Booking> findFutureBookingsByOwnerId(Integer userId, Pageable page);
 
     @Query("select b from Booking b where b.item.owner.id = ?1 and b.status = ?2")
-    List<Booking> findBookingsByOwnerIdAndBookingStatus(Integer id, Booking.BookingStatus status, Sort sort);
+    List<Booking> findBookingsByOwnerIdAndBookingStatus(Integer id, Booking.BookingStatus status, Pageable page);
 
     @Query("select b from Booking b where b.item.id in ?1 and b.status = 'APPROVED'")
     List<Booking> findApprovedBookings(Collection<Long> ids, Sort sort);

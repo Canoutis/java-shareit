@@ -15,21 +15,16 @@ public class BookingMapper {
                 .start(booking.getStartDate())
                 .end(booking.getEndDate())
                 .item(ItemMapper.toItemDto(booking.getItem()))
-                .itemId(booking.getItem().getId())
                 .booker(UserMapper.toUserDto(booking.getBooker()))
-                .bookerId(booking.getBooker().getId())
                 .build();
     }
 
-    public static Booking toBookingEntity(BookingDto bookingDto, Item item, User booker) {
-        return Booking.builder()
-                .id(bookingDto.getId())
-                .status(bookingDto.getStatus())
-                .startDate(bookingDto.getStart())
-                .endDate(bookingDto.getEnd())
-                .item(item)
-                .booker(booker)
-                .build();
+    public static BookItemRequestDto toBookingRequestDto(Booking booking) {
+        return new BookItemRequestDto(booking.getId(),
+                booking.getStartDate(),
+                booking.getEndDate(),
+                booking.getItem().getId(),
+                booking.getBooker().getId());
     }
 
     public static Booking toBookingEntity(BookItemRequestDto bookItemRequestDto, Item item, User booker) {
