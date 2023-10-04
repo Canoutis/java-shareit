@@ -18,13 +18,13 @@ public class BookingMapper {
                 .booker(UserMapper.toUserDto(booking.getBooker()))
                 .build();
     }
+
     public static BookItemRequestDto toBookingRequestDto(Booking booking) {
         return new BookItemRequestDto(booking.getId(),
                 booking.getStartDate(),
                 booking.getEndDate(),
                 booking.getItem().getId(),
                 booking.getBooker().getId());
-
     }
 
     public static Booking toBookingEntity(BookItemRequestDto bookItemRequestDto, Item item, User booker) {
