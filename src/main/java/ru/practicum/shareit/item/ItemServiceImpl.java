@@ -91,7 +91,7 @@ public class ItemServiceImpl implements ItemService {
         findUserById(userId);
         Sort sort = Sort.by(Sort.Direction.DESC, "id");
         if (from < 0 || size <= 0) {
-            throw new BadRequestException(String.format("Неправильные значения параметров! from=%x size=%x", from, size));
+            throw new BadRequestException(String.format("Неправильные значения параметров! from=%d size=%d", from, size));
         }
         PageRequest pageable = PageRequest.of(from > 0 ? from / size : 0, size, sort);
         List<Item> items = itemRepository.findByOwnerIdIs(userId, pageable);
@@ -108,13 +108,13 @@ public class ItemServiceImpl implements ItemService {
                             itemMap.get(booking.getItem().getId())
                                     .getLastBooking().getEnd()
                                     .isBefore(booking.getEndDate()))) {
-                itemMap.get(booking.getItem().getId()).setLastBooking(BookingMapper.toBookingDto(booking));
+                itemMap.get(booking.getItem().getId()).setLastBooking(BookingMapper.toBookingRequestDto(booking));
             } else if (booking.getStartDate().isAfter(now) &&
                     (itemMap.get(booking.getItem().getId()).getNextBooking() == null ||
                             itemMap.get(booking.getItem().getId())
                                     .getNextBooking().getStart()
                                     .isAfter(booking.getStartDate()))) {
-                itemMap.get(booking.getItem().getId()).setNextBooking(BookingMapper.toBookingDto(booking));
+                itemMap.get(booking.getItem().getId()).setNextBooking(BookingMapper.toBookingRequestDto(booking));
             }
         }
         List<Comment> comments = commentRepository.findCommentsByItems(itemMap.keySet(), Sort.by(Sort.Direction.DESC, "created"));
@@ -139,6 +139,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public OwnerItemDto getItemById(long itemId, Integer userId) {
+        findUserById(userId);
         Optional<Item> item = itemRepository.findById(itemId);
         if (item.isEmpty()) {
             throw new ObjectNotFoundException(String.format("Вещь не найдена! Id=%d", itemId));
@@ -147,8 +148,8 @@ public class ItemServiceImpl implements ItemService {
             if (userId != null && item.get().getOwner().getId() == userId.intValue()) {
                 List<Booking> lastBooking = bookingRepository.findOwnerLastBooking(item.get().getId(), Sort.by(Sort.Direction.DESC, "endDate"));
                 List<Booking> nextBooking = bookingRepository.findOwnerNextBooking(item.get().getId(), Sort.by("startDate"));
-                ownerItemDto.setLastBooking(lastBooking.size() > 0 ? BookingMapper.toBookingDto(lastBooking.get(0)) : null);
-                ownerItemDto.setNextBooking(nextBooking.size() > 0 ? BookingMapper.toBookingDto(nextBooking.get(0)) : null);
+                ownerItemDto.setLastBooking(lastBooking.size() > 0 ? BookingMapper.toBookingRequestDto(lastBooking.get(0)) : null);
+                ownerItemDto.setNextBooking(nextBooking.size() > 0 ? BookingMapper.toBookingRequestDto(nextBooking.get(0)) : null);
             } else {
                 ownerItemDto = new OwnerItemDto(ItemMapper.toItemDto(item.get()));
             }

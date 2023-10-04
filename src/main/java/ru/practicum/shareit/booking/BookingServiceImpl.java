@@ -45,29 +45,24 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingDto create(BookItemRequestDto bookItemRequestDto, int userId) {
-        Optional<User> booker = userRepository.findById(userId);
-        if (booker.isEmpty()) {
-            throw new ObjectNotFoundException(String.format("Пользователь не найден! Id=%d", userId));
-        } else {
-            Optional<Item> item = itemRepository.findById(bookItemRequestDto.getItemId());
-            if (item.isPresent()) {
-                if (!item.get().getAvailable()) {
-                    throw new ObjectSaveException(String.format("Вещь недоступна для бронирования! Id=%d", item.get().getId()));
-                } else if (item.get().getOwner().getId() == userId) {
-                    throw new ObjectUpdateException(String.format("Вещь недоступна для бронирования! Id=%d", item.get().getId()));
-                } else if (!bookItemRequestDto.getStart().isBefore(bookItemRequestDto.getEnd()) ||
-                        bookItemRequestDto.getStart().isBefore(LocalDateTime.now()) ||
-                        bookingRepository.hasApprovedBookingInPeriod(bookItemRequestDto.getItemId(),
-                                bookItemRequestDto.getStart(), bookItemRequestDto.getEnd())) {
-                    throw new ObjectSaveException("Некорректный период бронирования!");
-                }
-                Booking booking = BookingMapper.toBookingEntity(bookItemRequestDto, item.get(), booker.get());
-                booking.setStatus(WAITING);
-                return BookingMapper.toBookingDto(bookingRepository.save(booking));
-            } else {
-                throw new ObjectNotFoundException(String.format("Вещь не найдена! Id=%d", bookItemRequestDto.getItemId()));
+        User booker = findUserById(userId);
+        Optional<Item> item = itemRepository.findById(bookItemRequestDto.getItemId());
+        if (item.isPresent()) {
+            if (!item.get().getAvailable()) {
+                throw new ObjectSaveException(String.format("Вещь недоступна для бронирования! Id=%d", item.get().getId()));
+            } else if (item.get().getOwner().getId() == userId) {
+                throw new ObjectUpdateException(String.format("Вещь недоступна для бронирования! Id=%d", item.get().getId()));
+            } else if (!bookItemRequestDto.getStart().isBefore(bookItemRequestDto.getEnd()) ||
+                    bookItemRequestDto.getStart().isBefore(LocalDateTime.now()) ||
+                    bookingRepository.hasApprovedBookingInPeriod(bookItemRequestDto.getItemId(),
+                            bookItemRequestDto.getStart(), bookItemRequestDto.getEnd())) {
+                throw new ObjectSaveException("Некорректный период бронирования!");
             }
-
+            Booking booking = BookingMapper.toBookingEntity(bookItemRequestDto, item.get(), booker);
+            booking.setStatus(WAITING);
+            return BookingMapper.toBookingDto(bookingRepository.save(booking));
+        } else {
+            throw new ObjectNotFoundException(String.format("Вещь не найдена! Id=%d", bookItemRequestDto.getItemId()));
         }
     }
 
@@ -91,8 +86,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDto> findBookingsBySearchState(int userId, State state, Integer from, Integer size) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) throw new ObjectNotFoundException(String.format("Пользователь не найден! Id=%x", userId));
+        findUserById(userId);
         if (from < 0 || size <= 0) {
             throw new BadRequestException(String.format("Неправильные значения параметров! from=%x size=%x", from, size));
         }
@@ -118,8 +112,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDto> findBookingsByItemsOwner(int userId, State state, Integer from, Integer size) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) throw new ObjectNotFoundException(String.format("Пользователь не найден! Id=%x", userId));
+        findUserById(userId);
         if (from < 0 || size <= 0) {
             throw new BadRequestException(String.format("Неправильные значения параметров! from=%x size=%x", from, size));
         }
@@ -144,6 +137,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private Booking getById(Long bookingId, int userId) {
+        findUserById(userId);
         Optional<Booking> booking = bookingRepository.findById(bookingId);
         if (booking.isEmpty() || (booking.get().getBooker().getId() != userId &&
                 booking.get().getItem().getOwner().getId() != userId)) {
@@ -151,5 +145,13 @@ public class BookingServiceImpl implements BookingService {
         } else {
             return booking.get();
         }
+    }
+
+    private User findUserById(Integer id) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isEmpty()) {
+            throw new ObjectNotFoundException(String.format("Пользователь не найден! Id=%d", id));
+        }
+        return user.get();
     }
 }

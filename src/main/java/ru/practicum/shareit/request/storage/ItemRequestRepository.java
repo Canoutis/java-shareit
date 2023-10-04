@@ -13,6 +13,4 @@ public interface ItemRequestRepository extends JpaRepository<ItemRequest, Long> 
 
     List<ItemRequest> findDistinctByOwnerIdNot(Integer id, Pageable page);
 
-    List<ItemRequest> findDistinctByOwnerIdNot(Integer id, Sort sort);
-
 }
