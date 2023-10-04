@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import static ru.practicum.shareit.booking.Booking.BookingStatus.APPROVED;
 import static ru.practicum.shareit.booking.Booking.BookingStatus.REJECTED;
 import static ru.practicum.shareit.booking.Booking.BookingStatus.WAITING;
+import static ru.practicum.shareit.utils.Helper.findUserById;
 
 @Service
 @Transactional(readOnly = true)
@@ -45,7 +46,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingDto create(BookItemRequestDto bookItemRequestDto, int userId) {
-        User booker = findUserById(userId);
+        User booker = findUserById(userRepository, userId);
         Optional<Item> item = itemRepository.findById(bookItemRequestDto.getItemId());
         if (item.isPresent()) {
             if (!item.get().getAvailable()) {
@@ -86,10 +87,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDto> findBookingsBySearchState(int userId, State state, Integer from, Integer size) {
-        findUserById(userId);
-        if (from < 0 || size <= 0) {
-            throw new BadRequestException(String.format("Неправильные значения параметров! from=%x size=%x", from, size));
-        }
+        findUserById(userRepository, userId);
         PageRequest pageable = PageRequest.of(from > 0 ? from / size : 0, size, bookingStartDateSortDesc);
         List<Booking> bookings;
         if (state == null || state == State.ALL) {
@@ -112,10 +110,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDto> findBookingsByItemsOwner(int userId, State state, Integer from, Integer size) {
-        findUserById(userId);
-        if (from < 0 || size <= 0) {
-            throw new BadRequestException(String.format("Неправильные значения параметров! from=%x size=%x", from, size));
-        }
+        findUserById(userRepository, userId);
         PageRequest pageable = PageRequest.of(from > 0 ? from / size : 0, size, bookingStartDateSortDesc);
         List<Booking> bookings;
         if (state == null || state == State.ALL) {
@@ -137,7 +132,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private Booking getById(Long bookingId, int userId) {
-        findUserById(userId);
+        findUserById(userRepository, userId);
         Optional<Booking> booking = bookingRepository.findById(bookingId);
         if (booking.isEmpty() || (booking.get().getBooker().getId() != userId &&
                 booking.get().getItem().getOwner().getId() != userId)) {
@@ -145,13 +140,5 @@ public class BookingServiceImpl implements BookingService {
         } else {
             return booking.get();
         }
-    }
-
-    private User findUserById(Integer id) {
-        Optional<User> user = userRepository.findById(id);
-        if (user.isEmpty()) {
-            throw new ObjectNotFoundException(String.format("Пользователь не найден! Id=%d", id));
-        }
-        return user.get();
     }
 }

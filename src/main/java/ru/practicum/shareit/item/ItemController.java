@@ -2,6 +2,7 @@ package ru.practicum.shareit.item;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,11 +17,14 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.OwnerItemDto;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.Collection;
 import java.util.List;
 
 @RestController
 @RequestMapping("/items")
+@Validated
 public class ItemController {
     private final ItemService itemService;
 
@@ -45,15 +49,15 @@ public class ItemController {
 
     @GetMapping
     public ResponseEntity<Collection<OwnerItemDto>> getItemsByOwnerId(@RequestHeader("X-Sharer-User-Id") int userId,
-                                                                      @RequestParam(required = false, defaultValue = "0") Integer from,
-                                                                      @RequestParam(required = false, defaultValue = "20") Integer size) {
+                                                                      @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                                                                      @Positive @RequestParam(defaultValue = "20") Integer size) {
         return new ResponseEntity<>(itemService.getItemsByOwnerId(userId, from, size), HttpStatus.OK);
     }
 
     @GetMapping("/search")
     public ResponseEntity<List<ItemDto>> searchItems(@RequestParam("text") String text,
-                                                     @RequestParam(required = false, defaultValue = "0") Integer from,
-                                                     @RequestParam(required = false, defaultValue = "20") Integer size) {
+                                                     @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                                                     @Positive @RequestParam(defaultValue = "20") Integer size) {
         return new ResponseEntity<>(itemService.searchItems(text, from, size), HttpStatus.OK);
     }
 

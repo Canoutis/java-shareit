@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingMapper;
 import ru.practicum.shareit.booking.storage.BookingRepository;
-import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.ObjectAccessException;
 import ru.practicum.shareit.exception.ObjectNotFoundException;
 import ru.practicum.shareit.exception.ObjectSaveException;
@@ -30,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static ru.practicum.shareit.utils.Helper.findUserById;
 
 @Service
 @Transactional(readOnly = true)
@@ -67,7 +68,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public ItemDto update(Integer userId, Long itemId, ItemDto itemDto) {
-        User user = findUserById(userId);
+        User user = findUserById(userRepository, userId);
         ItemDto tempItemDto = getItemById(itemId, userId);
         if (tempItemDto.getOwnerId() != userId) {
             throw new ObjectAccessException(
@@ -88,11 +89,8 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Collection<OwnerItemDto> getItemsByOwnerId(int userId, Integer from, Integer size) {
-        findUserById(userId);
+        findUserById(userRepository, userId);
         Sort sort = Sort.by(Sort.Direction.DESC, "id");
-        if (from < 0 || size <= 0) {
-            throw new BadRequestException(String.format("Неправильные значения параметров! from=%d size=%d", from, size));
-        }
         PageRequest pageable = PageRequest.of(from > 0 ? from / size : 0, size, sort);
         List<Item> items = itemRepository.findByOwnerIdIs(userId, pageable);
         Map<Long, OwnerItemDto> itemMap = items.stream()
@@ -129,9 +127,6 @@ public class ItemServiceImpl implements ItemService {
     public List<ItemDto> searchItems(String text, Integer from, Integer size) {
         if (text == null || text.isEmpty()) return new ArrayList<>();
         Sort sort = Sort.by("id");
-        if (from < 0 || size <= 0) {
-            throw new BadRequestException(String.format("Неправильные значения параметров! from=%x size=%x", from, size));
-        }
         PageRequest pageable = PageRequest.of(from > 0 ? from / size : 0, size, sort);
         List<Item> items = itemRepository.findItemsByText(text, pageable);
         return items.stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
@@ -139,7 +134,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public OwnerItemDto getItemById(long itemId, Integer userId) {
-        findUserById(userId);
+        findUserById(userRepository, userId);
         Optional<Item> item = itemRepository.findById(itemId);
         if (item.isEmpty()) {
             throw new ObjectNotFoundException(String.format("Вещь не найдена! Id=%d", itemId));
@@ -163,7 +158,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public CommentDto saveComment(CommentDto commentDto, int userId, long itemId) {
-        User author = findUserById(userId);
+        User author = findUserById(userRepository, userId);
         Optional<Item> item = itemRepository.findById(itemId);
         if (item.isEmpty()) throw new ObjectNotFoundException(String.format("Вещь не найдена! Id=%x", itemId));
         List<Booking> bookings = bookingRepository.findExpiredByBookerIdAndItemId(userId, itemId);
@@ -188,13 +183,4 @@ public class ItemServiceImpl implements ItemService {
         return itemRequest;
     }
 
-    //Вопрос по таким методам. Не хочется как то одно и то же дублировать.
-    //А в итоге все равно в разных сервисах дублирую разные методы. Подскажите как лучше
-    private User findUserById(Integer id) {
-        Optional<User> user = userRepository.findById(id);
-        if (user.isEmpty()) {
-            throw new ObjectNotFoundException(String.format("Пользователь не найден! Id=%d", id));
-        }
-        return user.get();
-    }
 }

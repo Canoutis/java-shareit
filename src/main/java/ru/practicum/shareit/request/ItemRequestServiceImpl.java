@@ -5,7 +5,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.ObjectNotFoundException;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.ItemMapper;
@@ -20,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static ru.practicum.shareit.utils.Helper.findUserById;
 
 @Service
 @Transactional(readOnly = true)
@@ -40,26 +41,21 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     @Transactional
     public ItemRequestDto create(Integer userId, ItemRequestDto itemRequestDto) {
-        User owner = findUser(userId);
+        User owner = findUserById(userRepository, userId);
         return ItemRequestMapper.toItemRequestDto(
                 itemRequestRepository.save(ItemRequestMapper.toItemRequestEntity(itemRequestDto, owner)));
     }
 
     @Override
     public Collection<ItemRequestDto> findUserItemRequests(Integer userId) {
-        findUser(userId);
+        findUserById(userRepository, userId);
         List<ItemRequest> itemRequests = itemRequestRepository.findByOwnerIdIs(userId, Sort.by(Sort.Direction.DESC, "created"));
         return fillItemRequestsWithItems(itemRequests);
-
-
     }
 
     @Override
     public Collection<ItemRequestDto> findOtherItemRequests(int userId, Integer from, Integer size) {
-        findUser(userId);
-        if (from < 0 || size <= 0) {
-            throw new BadRequestException(String.format("Неправильные значения параметров! from=%d size=%x", from, size));
-        }
+        findUserById(userRepository, userId);
         PageRequest pageable = PageRequest.of(from > 0 ? from / size : 0, size, Sort.by(Sort.Direction.DESC, "created"));
         List<ItemRequest> itemRequests = itemRequestRepository.findDistinctByOwnerIdNot(userId, pageable);
         return fillItemRequestsWithItems(itemRequests);
@@ -67,24 +63,16 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public ItemRequestDto findById(int userId, Long itemRequestId) {
-        findUser(userId);
+        findUserById(userRepository, userId);
         Optional<ItemRequest> itemRequest = itemRequestRepository.findById(itemRequestId);
         if (itemRequest.isEmpty()) {
             throw new ObjectNotFoundException(String.format("Запрос вещи не найден! Id=%d", itemRequestId));
         } else {
             ItemRequestDto itemRequestDto = ItemRequestMapper.toItemRequestDto(itemRequest.get());
-            itemRequestDto.getItems().addAll(itemRepository.findByItemRequestIdOrderByIdAsc(itemRequestId)
+            itemRequestDto.getItems().addAll(itemRepository.findByItemRequestId(itemRequestId, Sort.by("id"))
                     .stream().map(ItemMapper::toItemDto).collect(Collectors.toList()));
             return itemRequestDto;
         }
-    }
-
-    private User findUser(int userId) {
-        Optional<User> owner = userRepository.findById(userId);
-        if (owner.isEmpty()) {
-            throw new ObjectNotFoundException(String.format("Пользователь не найден! Id=%d", userId));
-        }
-        return owner.get();
     }
 
     private Collection<ItemRequestDto> fillItemRequestsWithItems(List<ItemRequest> itemRequests) {

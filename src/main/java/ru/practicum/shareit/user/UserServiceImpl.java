@@ -4,12 +4,12 @@ package ru.practicum.shareit.user;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.exception.ObjectNotFoundException;
 import ru.practicum.shareit.user.storage.UserRepository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static ru.practicum.shareit.utils.Helper.findUserById;
 
 @Service
 @Transactional(readOnly = true)
@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDto update(int userId, UserDto userDto) {
-        User user = findUserById(userId);
+        User user = findUserById(userRepository, userId);
         if (userDto.getName() != null && !userDto.getName().isBlank())
             user.setName(userDto.getName());
         if (userDto.getEmail() != null && !userDto.getEmail().isBlank() && !user.getEmail().equals(userDto.getEmail())) {
@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto getUserById(int id) {
-        return UserMapper.toUserDto(findUserById(id));
+        return UserMapper.toUserDto(findUserById(userRepository, id));
     }
 
     @Override
@@ -56,14 +56,4 @@ public class UserServiceImpl implements UserService {
         getUserById(id);
         userRepository.deleteById(id);
     }
-
-    private User findUserById(int id) {
-        Optional<User> optionalUser = userRepository.findById(id);
-        if (optionalUser.isPresent()) {
-            return optionalUser.get();
-        } else {
-            throw new ObjectNotFoundException(String.format("Пользователь не найден! Id=%d", id));
-        }
-    }
-
 }

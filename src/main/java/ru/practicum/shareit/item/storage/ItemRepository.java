@@ -22,6 +22,6 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     @Query("select i from Item i where i.itemRequest.id in ?1")
     List<Item> findItemsByRequest(Collection<Long> ids, Sort sort);
 
-    List<Item> findByItemRequestIdOrderByIdAsc(Long id);
+    List<Item> findByItemRequestId(Long id, Sort sort);
 
 }

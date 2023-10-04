@@ -3,6 +3,7 @@ package ru.practicum.shareit.booking;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,9 +17,12 @@ import ru.practicum.shareit.booking.dto.BookItemRequestDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 
 @RestController
 @RequestMapping(path = "/bookings")
+@Validated
 public class BookingController {
 
     private final BookingService bookingService;
@@ -47,17 +51,17 @@ public class BookingController {
 
     @GetMapping
     public ResponseEntity<Object> findBookingsBySearchState(@RequestHeader("X-Sharer-User-Id") int userId,
-                                                            @RequestParam(value = "state", required = false, defaultValue = "ALL") State state,
-                                                            @RequestParam(required = false, defaultValue = "0") Integer from,
-                                                            @RequestParam(required = false, defaultValue = "20") Integer size) {
+                                                            @RequestParam(value = "state", defaultValue = "ALL") State state,
+                                                            @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                                                            @Positive @RequestParam(defaultValue = "20") Integer size) {
         return new ResponseEntity<>(bookingService.findBookingsBySearchState(userId, state, from, size), HttpStatus.OK);
     }
 
     @GetMapping("/owner")
     public ResponseEntity<Object> findBookingsByItemsOwner(@RequestHeader("X-Sharer-User-Id") int userId,
-                                                           @RequestParam(value = "state", required = false, defaultValue = "ALL") State state,
-                                                           @RequestParam(required = false, defaultValue = "0") Integer from,
-                                                           @RequestParam(required = false, defaultValue = "20") Integer size) {
+                                                           @RequestParam(value = "state", defaultValue = "ALL") State state,
+                                                           @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                                                           @Positive @RequestParam(defaultValue = "20") Integer size) {
         return new ResponseEntity<>(bookingService.findBookingsByItemsOwner(userId, state, from, size), HttpStatus.OK);
     }
 

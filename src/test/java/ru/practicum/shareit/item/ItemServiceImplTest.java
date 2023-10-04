@@ -11,7 +11,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.storage.BookingRepository;
-import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.ObjectAccessException;
 import ru.practicum.shareit.exception.ObjectNotFoundException;
 import ru.practicum.shareit.exception.ObjectSaveException;
@@ -247,23 +246,6 @@ public class ItemServiceImplTest {
                 .findCommentsByItems(anyCollection(), any(Sort.class));
 
         Mockito.verifyNoInteractions(itemRequestRepository);
-    }
-
-    @Test
-    void testGetItemsByOwnerIdThrowsBadRequestException() {
-        User user = new User(1, "test@etcdev.ru", "Test Test");
-
-        Mockito.when(userRepository.findById(1))
-                .thenReturn(Optional.of(user));
-        final BadRequestException exception = Assertions.assertThrows(
-                BadRequestException.class,
-                () -> itemService.getItemsByOwnerId(1, -1, 0));
-        Assertions.assertEquals("Неправильные значения параметров! from=-1 size=0", exception.getMessage());
-
-        Mockito.verify(userRepository, Mockito.times(1))
-                .findById(1);
-
-        Mockito.verifyNoMoreInteractions(userRepository);
     }
 
     @Test
