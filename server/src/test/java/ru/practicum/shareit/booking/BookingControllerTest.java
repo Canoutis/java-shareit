@@ -144,7 +144,7 @@ public class BookingControllerTest {
 
     @Test
     void testFindBookingsBySearchStateALL() throws Exception {
-        Mockito.when(bookingService.findBookingsBySearchState(2, State.ALL, 0, 2))
+        Mockito.when(bookingService.findBookingsBySearchState(2, BookingState.ALL, 0, 2))
                 .thenReturn(Collections.singletonList(bookingDto));
 
         mvc.perform(get("/bookings")
@@ -162,7 +162,7 @@ public class BookingControllerTest {
 
     @Test
     void testFindBookingsBySearchStatePAST() throws Exception {
-        Mockito.when(bookingService.findBookingsBySearchState(2, State.PAST, 0, 2))
+        Mockito.when(bookingService.findBookingsBySearchState(2, BookingState.PAST, 0, 2))
                 .thenReturn(new ArrayList<>());
 
         mvc.perform(get("/bookings")
@@ -179,7 +179,7 @@ public class BookingControllerTest {
 
     @Test
     void testFindBookingsBySearchStateFUTURE() throws Exception {
-        Mockito.when(bookingService.findBookingsBySearchState(2, State.FUTURE, 0, 2))
+        Mockito.when(bookingService.findBookingsBySearchState(2, BookingState.FUTURE, 0, 2))
                 .thenReturn(Collections.singletonList(bookingDto));
 
         mvc.perform(get("/bookings")
@@ -198,7 +198,7 @@ public class BookingControllerTest {
 
     @Test
     void testFindBookingsByItemsOwnerStateALL() throws Exception {
-        Mockito.when(bookingService.findBookingsByItemsOwner(1, State.ALL, 0, 2))
+        Mockito.when(bookingService.findBookingsByItemsOwner(1, BookingState.ALL, 0, 2))
                 .thenReturn(Collections.singletonList(bookingDto));
 
         mvc.perform(get("/bookings/owner")
@@ -216,7 +216,7 @@ public class BookingControllerTest {
 
     @Test
     void testFindBookingsByItemsOwnerStatePAST() throws Exception {
-        Mockito.when(bookingService.findBookingsByItemsOwner(1, State.PAST, 0, 2))
+        Mockito.when(bookingService.findBookingsByItemsOwner(1, BookingState.PAST, 0, 2))
                 .thenReturn(new ArrayList<>());
 
         mvc.perform(get("/bookings/owner")
@@ -233,7 +233,7 @@ public class BookingControllerTest {
 
     @Test
     void testFindBookingsByItemsOwnerStateFUTURE() throws Exception {
-        Mockito.when(bookingService.findBookingsByItemsOwner(1, State.FUTURE, 0, 2))
+        Mockito.when(bookingService.findBookingsByItemsOwner(1, BookingState.FUTURE, 0, 2))
                 .thenReturn(Collections.singletonList(bookingDto));
 
         mvc.perform(get("/bookings/owner")

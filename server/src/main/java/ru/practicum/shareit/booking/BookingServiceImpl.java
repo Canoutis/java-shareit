@@ -86,47 +86,47 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingDto> findBookingsBySearchState(int userId, State state, Integer from, Integer size) {
+    public List<BookingDto> findBookingsBySearchState(int userId, BookingState bookingState, Integer from, Integer size) {
         findUserById(userRepository, userId);
         PageRequest pageable = PageRequest.of(from > 0 ? from / size : 0, size, bookingStartDateSortDesc);
         List<Booking> bookings;
-        if (state == null || state == State.ALL) {
+        if (bookingState == null || bookingState == BookingState.ALL) {
             bookings = bookingRepository.findByBookerId(userId, pageable);
-        } else if (state == State.CURRENT) {
+        } else if (bookingState == BookingState.CURRENT) {
             bookings = bookingRepository.findCurrentBookingsByBookerId(userId, pageable);
-        } else if (state == State.PAST) {
+        } else if (bookingState == BookingState.PAST) {
             bookings = bookingRepository.findPastBookingsByBookerId(userId, pageable);
-        } else if (state == State.FUTURE) {
+        } else if (bookingState == BookingState.FUTURE) {
             bookings = bookingRepository.findFutureBookingsByBookerId(userId, pageable);
-        } else if (state == State.WAITING) {
+        } else if (bookingState == BookingState.WAITING) {
             bookings = bookingRepository.findBookingsByBookerIdAndBookingStatus(userId, WAITING, pageable);
-        } else if (state == State.REJECTED) {
+        } else if (bookingState == BookingState.REJECTED) {
             bookings = bookingRepository.findBookingsByBookerIdAndBookingStatus(userId, REJECTED, pageable);
         } else {
-            throw new BadRequestException(String.format("Unknown state: %s", state));
+            throw new BadRequestException(String.format("Unknown bookingState: %s", bookingState));
         }
         return bookings.stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
     }
 
     @Override
-    public List<BookingDto> findBookingsByItemsOwner(int userId, State state, Integer from, Integer size) {
+    public List<BookingDto> findBookingsByItemsOwner(int userId, BookingState bookingState, Integer from, Integer size) {
         findUserById(userRepository, userId);
         PageRequest pageable = PageRequest.of(from > 0 ? from / size : 0, size, bookingStartDateSortDesc);
         List<Booking> bookings;
-        if (state == null || state == State.ALL) {
+        if (bookingState == null || bookingState == BookingState.ALL) {
             bookings = bookingRepository.findByOwnerId(userId, pageable);
-        } else if (state == State.CURRENT) {
+        } else if (bookingState == BookingState.CURRENT) {
             bookings = bookingRepository.findCurrentBookingsByOwnerId(userId, pageable);
-        } else if (state == State.PAST) {
+        } else if (bookingState == BookingState.PAST) {
             bookings = bookingRepository.findPastBookingsByOwnerId(userId, pageable);
-        } else if (state == State.FUTURE) {
+        } else if (bookingState == BookingState.FUTURE) {
             bookings = bookingRepository.findFutureBookingsByOwnerId(userId, pageable);
-        } else if (state == State.WAITING) {
+        } else if (bookingState == BookingState.WAITING) {
             bookings = bookingRepository.findBookingsByOwnerIdAndBookingStatus(userId, WAITING, pageable);
-        } else if (state == State.REJECTED) {
+        } else if (bookingState == BookingState.REJECTED) {
             bookings = bookingRepository.findBookingsByOwnerIdAndBookingStatus(userId, REJECTED, pageable);
         } else {
-            throw new BadRequestException(String.format("Unknown state: %s", state));
+            throw new BadRequestException(String.format("Unknown bookingState: %s", bookingState));
         }
         return bookings.stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
     }

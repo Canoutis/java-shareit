@@ -330,7 +330,7 @@ public class BookingServiceImplTest {
                 .thenReturn(Optional.of(user));
         Mockito.when(bookingRepository.findByBookerId(anyInt(), any(PageRequest.class)))
                 .thenReturn(Collections.singletonList(booking));
-        List<BookingDto> bookingDtoList = bookingService.findBookingsBySearchState(2, State.ALL, 0, 10);
+        List<BookingDto> bookingDtoList = bookingService.findBookingsBySearchState(2, BookingState.ALL, 0, 10);
 
         Assertions.assertEquals(1, bookingDtoList.size());
 
@@ -354,7 +354,7 @@ public class BookingServiceImplTest {
                 .thenReturn(Optional.of(user));
         Mockito.when(bookingRepository.findCurrentBookingsByBookerId(anyInt(), any(PageRequest.class)))
                 .thenReturn(Collections.singletonList(booking));
-        List<BookingDto> bookingDtoList = bookingService.findBookingsBySearchState(2, State.CURRENT, 0, 10);
+        List<BookingDto> bookingDtoList = bookingService.findBookingsBySearchState(2, BookingState.CURRENT, 0, 10);
 
         Assertions.assertEquals(1, bookingDtoList.size());
 
@@ -378,7 +378,7 @@ public class BookingServiceImplTest {
                 .thenReturn(Optional.of(user));
         Mockito.when(bookingRepository.findPastBookingsByBookerId(anyInt(), any(PageRequest.class)))
                 .thenReturn(Collections.singletonList(booking));
-        List<BookingDto> bookingDtoList = bookingService.findBookingsBySearchState(2, State.PAST, 0, 10);
+        List<BookingDto> bookingDtoList = bookingService.findBookingsBySearchState(2, BookingState.PAST, 0, 10);
 
         Assertions.assertEquals(1, bookingDtoList.size());
 
@@ -402,7 +402,7 @@ public class BookingServiceImplTest {
                 .thenReturn(Optional.of(user));
         Mockito.when(bookingRepository.findFutureBookingsByBookerId(anyInt(), any(PageRequest.class)))
                 .thenReturn(Collections.singletonList(booking));
-        List<BookingDto> bookingDtoList = bookingService.findBookingsBySearchState(2, State.FUTURE, 0, 10);
+        List<BookingDto> bookingDtoList = bookingService.findBookingsBySearchState(2, BookingState.FUTURE, 0, 10);
 
         Assertions.assertEquals(1, bookingDtoList.size());
 
@@ -426,7 +426,7 @@ public class BookingServiceImplTest {
                 .thenReturn(Optional.of(user));
         Mockito.when(bookingRepository.findBookingsByBookerIdAndBookingStatus(anyInt(), any(Booking.BookingStatus.class), any(PageRequest.class)))
                 .thenReturn(Collections.singletonList(booking));
-        List<BookingDto> bookingDtoList = bookingService.findBookingsBySearchState(2, State.WAITING, 0, 10);
+        List<BookingDto> bookingDtoList = bookingService.findBookingsBySearchState(2, BookingState.WAITING, 0, 10);
 
         Assertions.assertEquals(1, bookingDtoList.size());
 
@@ -450,7 +450,7 @@ public class BookingServiceImplTest {
                 .thenReturn(Optional.of(user));
         Mockito.when(bookingRepository.findBookingsByBookerIdAndBookingStatus(anyInt(), any(Booking.BookingStatus.class), any(PageRequest.class)))
                 .thenReturn(Collections.singletonList(booking));
-        List<BookingDto> bookingDtoList = bookingService.findBookingsBySearchState(2, State.REJECTED, 0, 10);
+        List<BookingDto> bookingDtoList = bookingService.findBookingsBySearchState(2, BookingState.REJECTED, 0, 10);
 
         Assertions.assertEquals(1, bookingDtoList.size());
 
@@ -474,7 +474,7 @@ public class BookingServiceImplTest {
                 .thenReturn(Optional.of(user));
         Mockito.when(bookingRepository.findByOwnerId(anyInt(), any(PageRequest.class)))
                 .thenReturn(Collections.singletonList(booking));
-        List<BookingDto> bookingDtoList = bookingService.findBookingsByItemsOwner(1, State.ALL, 0, 10);
+        List<BookingDto> bookingDtoList = bookingService.findBookingsByItemsOwner(1, BookingState.ALL, 0, 10);
 
         Assertions.assertEquals(1, bookingDtoList.size());
 
@@ -498,7 +498,7 @@ public class BookingServiceImplTest {
                 .thenReturn(Optional.of(user));
         Mockito.when(bookingRepository.findCurrentBookingsByOwnerId(anyInt(), any(PageRequest.class)))
                 .thenReturn(Collections.singletonList(booking));
-        List<BookingDto> bookingDtoList = bookingService.findBookingsByItemsOwner(1, State.CURRENT, 0, 10);
+        List<BookingDto> bookingDtoList = bookingService.findBookingsByItemsOwner(1, BookingState.CURRENT, 0, 10);
 
         Assertions.assertEquals(1, bookingDtoList.size());
 
@@ -522,7 +522,7 @@ public class BookingServiceImplTest {
                 .thenReturn(Optional.of(user));
         Mockito.when(bookingRepository.findPastBookingsByOwnerId(anyInt(), any(PageRequest.class)))
                 .thenReturn(Collections.singletonList(booking));
-        List<BookingDto> bookingDtoList = bookingService.findBookingsByItemsOwner(1, State.PAST, 0, 10);
+        List<BookingDto> bookingDtoList = bookingService.findBookingsByItemsOwner(1, BookingState.PAST, 0, 10);
 
         Assertions.assertEquals(1, bookingDtoList.size());
 
@@ -546,7 +546,7 @@ public class BookingServiceImplTest {
                 .thenReturn(Optional.of(user));
         Mockito.when(bookingRepository.findFutureBookingsByOwnerId(anyInt(), any(PageRequest.class)))
                 .thenReturn(Collections.singletonList(booking));
-        List<BookingDto> bookingDtoList = bookingService.findBookingsByItemsOwner(1, State.FUTURE, 0, 10);
+        List<BookingDto> bookingDtoList = bookingService.findBookingsByItemsOwner(1, BookingState.FUTURE, 0, 10);
 
         Assertions.assertEquals(1, bookingDtoList.size());
 
@@ -570,7 +570,7 @@ public class BookingServiceImplTest {
                 .thenReturn(Optional.of(user));
         Mockito.when(bookingRepository.findBookingsByOwnerIdAndBookingStatus(anyInt(), any(Booking.BookingStatus.class), any(PageRequest.class)))
                 .thenReturn(Collections.singletonList(booking));
-        List<BookingDto> bookingDtoList = bookingService.findBookingsByItemsOwner(1, State.WAITING, 0, 10);
+        List<BookingDto> bookingDtoList = bookingService.findBookingsByItemsOwner(1, BookingState.WAITING, 0, 10);
 
         Assertions.assertEquals(1, bookingDtoList.size());
 
@@ -594,7 +594,7 @@ public class BookingServiceImplTest {
                 .thenReturn(Optional.of(user));
         Mockito.when(bookingRepository.findBookingsByOwnerIdAndBookingStatus(anyInt(), any(Booking.BookingStatus.class), any(PageRequest.class)))
                 .thenReturn(Collections.singletonList(booking));
-        List<BookingDto> bookingDtoList = bookingService.findBookingsByItemsOwner(1, State.REJECTED, 0, 10);
+        List<BookingDto> bookingDtoList = bookingService.findBookingsByItemsOwner(1, BookingState.REJECTED, 0, 10);
 
         Assertions.assertEquals(1, bookingDtoList.size());
 
