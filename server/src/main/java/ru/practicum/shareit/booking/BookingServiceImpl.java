@@ -103,7 +103,7 @@ public class BookingServiceImpl implements BookingService {
         } else if (bookingState == BookingState.REJECTED) {
             bookings = bookingRepository.findBookingsByBookerIdAndBookingStatus(userId, REJECTED, pageable);
         } else {
-            throw new BadRequestException(String.format("Unknown bookingState: %s", bookingState));
+            throw new BadRequestException(String.format("Unknown state: %s", bookingState));
         }
         return bookings.stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
     }
@@ -126,7 +126,7 @@ public class BookingServiceImpl implements BookingService {
         } else if (bookingState == BookingState.REJECTED) {
             bookings = bookingRepository.findBookingsByOwnerIdAndBookingStatus(userId, REJECTED, pageable);
         } else {
-            throw new BadRequestException(String.format("Unknown bookingState: %s", bookingState));
+            throw new BadRequestException(String.format("Unknown state: %s", bookingState));
         }
         return bookings.stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
     }

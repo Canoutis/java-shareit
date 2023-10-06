@@ -143,14 +143,14 @@ public class ItemServiceImpl implements ItemService {
             if (userId != null && item.get().getOwner().getId() == userId.intValue()) {
                 List<Booking> lastBooking = bookingRepository.findOwnerLastBooking(item.get().getId(), Sort.by(Sort.Direction.DESC, "endDate"));
                 List<Booking> nextBooking = bookingRepository.findOwnerNextBooking(item.get().getId(), Sort.by("startDate"));
-                ownerItemDto.setLastBooking(lastBooking.size() > 0 ? BookingMapper.toBookingRequestDto(lastBooking.get(0)) : null);
-                ownerItemDto.setNextBooking(nextBooking.size() > 0 ? BookingMapper.toBookingRequestDto(nextBooking.get(0)) : null);
+                ownerItemDto.setLastBooking(!lastBooking.isEmpty() ? BookingMapper.toBookingRequestDto(lastBooking.get(0)) : null);
+                ownerItemDto.setNextBooking(!nextBooking.isEmpty() ? BookingMapper.toBookingRequestDto(nextBooking.get(0)) : null);
             } else {
                 ownerItemDto = new OwnerItemDto(ItemMapper.toItemDto(item.get()));
             }
             ownerItemDto.getComments().addAll(commentRepository.findByItem_IdIsOrderByCreatedDesc(itemId)
-                            .stream().map(CommentMapper::toCommentDto)
-                            .collect(Collectors.toList()));
+                    .stream().map(CommentMapper::toCommentDto)
+                    .collect(Collectors.toList()));
             return ownerItemDto;
         }
     }
@@ -162,7 +162,7 @@ public class ItemServiceImpl implements ItemService {
         Optional<Item> item = itemRepository.findById(itemId);
         if (item.isEmpty()) throw new ObjectNotFoundException(String.format("Вещь не найдена! Id=%x", itemId));
         List<Booking> bookings = bookingRepository.findExpiredByBookerIdAndItemId(userId, itemId);
-        if (bookings != null && bookings.size() > 0) {
+        if (bookings != null && !bookings.isEmpty()) {
             Comment comment = CommentMapper.toCommentEntity(commentDto, author, item.get());
             return CommentMapper.toCommentDto(commentRepository.save(comment));
         } else {
