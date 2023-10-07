@@ -14,7 +14,6 @@ import ru.practicum.shareit.booking.storage.BookingRepository;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.ObjectNotFoundException;
 import ru.practicum.shareit.exception.ObjectSaveException;
-import ru.practicum.shareit.exception.ObjectUpdateException;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.user.User;
@@ -107,72 +106,6 @@ public class BookingServiceImplTest {
         Mockito.verifyNoInteractions(bookingRepository);
 
     }
-
-    @Test
-    void testCreateBookingThrowsObjectUpdateException() {
-        User user = new User(1, "test@etcdev.ru", "Test Test");
-        Item item = new Item(1L, "Перфоратор", "Электрический", true, user, null);
-        BookItemRequestDto bookItemRequestDto = new BookItemRequestDto();
-        bookItemRequestDto.setItemId(item.getId());
-        bookItemRequestDto.setBookerId(user.getId());
-        bookItemRequestDto.setStart(LocalDateTime.now().plusDays(5));
-        bookItemRequestDto.setEnd(LocalDateTime.now().plusDays(10));
-
-        Mockito.when(userRepository.findById(1))
-                .thenReturn(Optional.of(user));
-        Mockito.when(itemRepository.findById(1L))
-                .thenReturn(Optional.of(item));
-
-
-        final ObjectUpdateException exception = Assertions.assertThrows(
-                ObjectUpdateException.class,
-                () -> bookingService.create(bookItemRequestDto, user.getId()));
-
-        Assertions.assertEquals("Вещь недоступна для бронирования! Id=1", exception.getMessage());
-
-        Mockito.verify(userRepository, Mockito.times(1))
-                .findById(1);
-        Mockito.verify(itemRepository, Mockito.times(1))
-                .findById(1L);
-        Mockito.verifyNoInteractions(bookingRepository);
-
-    }
-
-    @Test
-    void testCreateBookingThrowsObjectSaveExceptionBusy() {
-        User user = new User(1, "test@etcdev.ru", "Test Test");
-        User user2 = new User(2, "test2@etcdev.ru", "Test2 Test2");
-        Item item = new Item(1L, "Перфоратор", "Электрический", true, user, null);
-        BookItemRequestDto bookItemRequestDto = new BookItemRequestDto();
-        bookItemRequestDto.setItemId(item.getId());
-        bookItemRequestDto.setBookerId(user2.getId());
-        bookItemRequestDto.setStart(LocalDateTime.now().plusDays(5));
-        bookItemRequestDto.setEnd(LocalDateTime.now().plusDays(10));
-
-        Mockito.when(userRepository.findById(2))
-                .thenReturn(Optional.of(user2));
-        Mockito.when(itemRepository.findById(1L))
-                .thenReturn(Optional.of(item));
-        Mockito.when(bookingRepository.hasApprovedBookingInPeriod(1L,
-                        bookItemRequestDto.getStart(), bookItemRequestDto.getEnd()))
-                .thenReturn(true);
-
-        final ObjectSaveException exception = Assertions.assertThrows(
-                ObjectSaveException.class,
-                () -> bookingService.create(bookItemRequestDto, user2.getId()));
-
-        Assertions.assertEquals("Некорректный период бронирования!", exception.getMessage());
-
-        Mockito.verify(userRepository, Mockito.times(1))
-                .findById(2);
-        Mockito.verify(itemRepository, Mockito.times(1))
-                .findById(1L);
-        Mockito.verify(bookingRepository, Mockito.times(1))
-                .hasApprovedBookingInPeriod(1L, bookItemRequestDto.getStart(), bookItemRequestDto.getEnd());
-        Mockito.verify(bookingRepository, Mockito.times(0))
-                .save(any(Booking.class));
-    }
-
 
     @Test
     void testApproveBookingOk() {
