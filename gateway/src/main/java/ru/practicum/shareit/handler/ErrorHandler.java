@@ -2,6 +2,7 @@ package ru.practicum.shareit.handler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -23,5 +24,13 @@ public class ErrorHandler {
     public ErrorResponse handleOtherExceptions(Throwable ex) {
         log.error("Internal Server Error: " + ex.getMessage());
         return new ErrorResponse("Internal Server Error", "У нас что-то сломалось! Честно чиним!");
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public ErrorResponse handleValidationException(MethodArgumentNotValidException ex) {
+        log.error("Validation failed: " + ex.getMessage());
+        return new ErrorResponse("Invalid input", "Ошибка валидации входных данных.");
     }
 }
