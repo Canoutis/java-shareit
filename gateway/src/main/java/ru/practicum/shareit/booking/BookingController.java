@@ -19,6 +19,7 @@ import ru.practicum.shareit.booking.dto.BookingState;
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
+import java.time.LocalDateTime;
 
 @Controller
 @RequestMapping(path = "/bookings")
@@ -42,6 +43,10 @@ public class BookingController {
     @PostMapping
     public ResponseEntity<Object> create(@RequestHeader("X-Sharer-User-Id") int userId,
                                          @RequestBody @Valid BookItemRequestDto requestDto) {
+        if (!requestDto.getStart().isBefore(requestDto.getEnd()) ||
+                requestDto.getStart().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException(String.format("Вещь недоступна для бронирования! Id=%d", requestDto.getItemId()));
+        }
         log.info("Creating booking {}, userId={}", requestDto, userId);
         return bookingClient.bookItem(userId, requestDto);
     }

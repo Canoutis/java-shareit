@@ -17,4 +17,11 @@ public class ErrorHandler {
         return new ErrorResponse(ex.getMessage());
     }
 
+    @ExceptionHandler(Throwable.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    public ErrorResponse handleOtherExceptions(Throwable ex) {
+        log.error("Internal Server Error: " + ex.getMessage());
+        return new ErrorResponse("Internal Server Error", "У нас что-то сломалось! Честно чиним!");
+    }
 }

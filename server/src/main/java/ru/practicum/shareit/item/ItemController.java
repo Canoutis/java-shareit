@@ -15,7 +15,6 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.OwnerItemDto;
 
-import javax.validation.Valid;
 import java.util.Collection;
 import java.util.List;
 
@@ -61,7 +60,7 @@ public class ItemController {
 
     @PostMapping("/{itemId}/comment")
     public ResponseEntity<CommentDto> saveComment(@RequestHeader("X-Sharer-User-Id") int userId,
-                                                  @Valid @RequestBody CommentDto commentDto, @PathVariable long itemId) {
+                                                  @RequestBody CommentDto commentDto, @PathVariable long itemId) {
         return new ResponseEntity<>(itemService.saveComment(commentDto, userId, itemId), HttpStatus.OK);
     }
 

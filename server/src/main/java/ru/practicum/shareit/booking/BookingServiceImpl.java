@@ -17,7 +17,6 @@ import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.storage.UserRepository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -49,15 +48,11 @@ public class BookingServiceImpl implements BookingService {
         User booker = findUserById(userRepository, userId);
         Optional<Item> item = itemRepository.findById(bookItemRequestDto.getItemId());
         if (item.isPresent()) {
-            if (!item.get().getAvailable()) {
+            if (!item.get().getAvailable() || bookingRepository.hasApprovedBookingInPeriod(bookItemRequestDto.getItemId(),
+                    bookItemRequestDto.getStart(), bookItemRequestDto.getEnd())) {
                 throw new ObjectSaveException(String.format("Вещь недоступна для бронирования! Id=%d", item.get().getId()));
             } else if (item.get().getOwner().getId() == userId) {
                 throw new ObjectUpdateException(String.format("Вещь недоступна для бронирования! Id=%d", item.get().getId()));
-            } else if (!bookItemRequestDto.getStart().isBefore(bookItemRequestDto.getEnd()) ||
-                    bookItemRequestDto.getStart().isBefore(LocalDateTime.now()) ||
-                    bookingRepository.hasApprovedBookingInPeriod(bookItemRequestDto.getItemId(),
-                            bookItemRequestDto.getStart(), bookItemRequestDto.getEnd())) {
-                throw new ObjectSaveException("Некорректный период бронирования!");
             }
             Booking booking = BookingMapper.toBookingEntity(bookItemRequestDto, item.get(), booker);
             booking.setStatus(WAITING);
